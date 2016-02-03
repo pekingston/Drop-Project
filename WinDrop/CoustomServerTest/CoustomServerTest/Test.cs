@@ -16,5 +16,11 @@ namespace CoustomServerTest
         {
             InitializeComponent();
         }
+
+        private void btnTest_Click(object sender, EventArgs e)
+        {
+            netTools tool = new netTools();
+            txtTest.Text = tool.getLocalWlanAdress();
+        }
     }
 }

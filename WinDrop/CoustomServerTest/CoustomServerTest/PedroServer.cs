@@ -12,6 +12,7 @@ namespace CoustomServerTest
     // http://rlbisbe.net/2011/04/25/creando-un-servidor-http-basico-con-c/
     class PedroServer
     {
+        private netTools netTool = new netTools();
         private int port;
         private IPAddress localAddr;
         private TcpListener server = null;
@@ -157,7 +158,8 @@ namespace CoustomServerTest
             PedroFileDownload data;
             nTmpFloder++;
             File.Copy(file, floderPath + "tmp"+nTmpFloder+"/"+filename);
-            data = new PedroFileDownload(file, filename, "");
+            File.Copy(INDEXHTMLPATH, floderPath + "tmp" + nTmpFloder + "/index.html");
+            data = new PedroFileDownload(file, filename, "http:\\"+netTool.getLocalWlanAdress()+":"+this.port+"\tmp" + nTmpFloder);
             return data;
         }
 

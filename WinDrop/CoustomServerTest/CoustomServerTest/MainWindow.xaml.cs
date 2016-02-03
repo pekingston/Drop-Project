@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.IO;
 
 namespace CoustomServerTest
 {
@@ -29,6 +30,7 @@ namespace CoustomServerTest
             InitializeComponent();
              serverThread = new Thread(new ThreadStart(ServerStart));
             serverThread.Start();
+            Debug();
             //servidor = new PedroServer(PORT);
         }
         private void ServerStart()
@@ -45,7 +47,7 @@ namespace CoustomServerTest
                 // Note that you can have more than one file.
                 String[] files = (String[])e.Data.GetData(DataFormats.FileDrop);
                 foreach (String file in files)
-                    MessageBox.Show(file);
+                    servidor.CreateLink(file, System.IO.Path.GetFileName(file));
             }
 
         }
@@ -55,5 +57,13 @@ namespace CoustomServerTest
             servidor.Stop();
             serverThread.Abort();
         }
+
+        private void Debug()
+        {
+            Test testWindow = new Test();
+            testWindow.Show();
+            
+        }
+
     }
 }
