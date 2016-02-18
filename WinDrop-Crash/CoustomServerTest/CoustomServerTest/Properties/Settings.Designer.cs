@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WinDropReborn.Properties
+namespace CoustomServerTest.Properties
 {
 
 
