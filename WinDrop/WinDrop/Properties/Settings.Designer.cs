@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CoustomServerTest.Properties
+namespace WinDrop.Properties
 {
 
 
