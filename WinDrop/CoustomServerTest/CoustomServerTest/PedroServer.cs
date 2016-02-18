@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace CoustomServerTest
 {
@@ -37,7 +38,7 @@ namespace CoustomServerTest
             listener = new TcpListener(IPAddress.Any, port);
             floderPath = System.IO.Path.GetTempPath() + Guid.NewGuid().ToString();
             System.IO.Directory.CreateDirectory(this.floderPath);
-            File.Copy(INDEXHTMLPATH, floderPath + "/index.html");
+            File.Copy(INDEXHTMLPATH,  floderPath + "/index.html");
             //File.Copy(@"C:\Users\Pedro\Downloads\test.zip", floderPath + "/test.zip");
             nTmpFloder = 0;
         }
@@ -89,11 +90,21 @@ namespace CoustomServerTest
             if (request.Path.Equals("/"))
                 request.Path = floderPath+"/index.html";
             ParsePath(request);
-            if (File.Exists(request.Path))
+            if (File.Exists(floderPath+request.Path))
             {
-                var fileContent = File.ReadAllText(request.Path);
-                GenerateResponse(fileContent, stream, OK200);
-                return;
+                if(Path.GetExtension(request.Path).ToUpper()==".HTML")
+                { 
+                    var fileContent = File.ReadAllText(floderPath + request.Path);
+                    GenerateResponse(fileContent, stream, OK200);
+                    return;
+                }
+                else
+                {
+                    
+                    byte[] byteContents = File.ReadAllBytes(floderPath + request.Path.Replace(@"/",@"\"));
+                    GenerateResponse(byteContents, stream, OK200);
+                    return;
+                }
             }
 
             GenerateResponse("Not found", stream, NOTFOUND404);
@@ -115,6 +126,25 @@ namespace CoustomServerTest
             stream.Write(msg, 0, msg.Length);
             return;
         }
+
+        private void GenerateResponse(byte[] content,
+        NetworkStream stream,
+        string responseHeader)
+            {
+            string response = "HTTP/1.1 200 OK\r\n\r\n\r\n";
+            byte[] responseBytes = System.Text.Encoding.ASCII.GetBytes(response);
+            //response = response + content;
+            //byte[] msg = System.Text.Encoding.ASCII.GetBytes(response);
+            byte[] msg = new byte[content.Length + responseBytes.Length];
+            responseBytes.CopyTo(msg, 0);
+            content.CopyTo(msg, responseBytes.Length);
+            stream.Write(msg, 0, msg.Length);
+            
+                return;
+            }
+
+
+
 
         private void StopServer()
         {
@@ -157,10 +187,34 @@ namespace CoustomServerTest
         {
             PedroFileDownload data;
             nTmpFloder++;
-            File.Copy(file, floderPath + "tmp"+nTmpFloder+"/"+filename);
-            File.Copy(INDEXHTMLPATH, floderPath + "tmp" + nTmpFloder + "/index.html");
-            data = new PedroFileDownload(file, filename, "http:\\"+netTool.getLocalWlanAdress()+":"+this.port+"\tmp" + nTmpFloder);
+            Directory.CreateDirectory(floderPath + @"\tmp" + nTmpFloder);
+            File.Copy(file, floderPath + @"\tmp"+nTmpFloder+@"\"+filename);
+            File.Copy(INDEXHTMLPATH, floderPath + @"\tmp" + nTmpFloder + @"\index.html");
+            String uri =  netTool.getLocalWlanAdress() + ":" + this.port + @"/tmp" + nTmpFloder;
+            data = new PedroFileDownload(floderPath + @"\tmp" + nTmpFloder, filename,uri);
+            ModifyHtml(data);
             return data;
+        }
+
+
+        public void ModifyHtml(PedroFileDownload pfd)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(pfd.Path +  @"\index.html");
+            String xPathSentence = "/html/body/a[@id='btnDownloadId']";
+            XmlNode htmlRoot = doc.DocumentElement;
+            XmlNode button = doc.ChildNodes[0]["body"]["a"];
+            if (button != null)
+            {
+                XmlAttribute href = doc.CreateAttribute("href");
+                XmlAttribute download = doc.CreateAttribute("download");
+                href.Value = @"http://" + pfd.Url + @"/" + pfd.Filename;
+                download.Value = pfd.Filename;
+                button.Attributes.Append(href);
+                button.Attributes.Append(download);
+            }
+            doc.Save(pfd.Path + @"/index.html");
+            
         }
 
 
